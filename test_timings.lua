@@ -1,8 +1,14 @@
+local Stats = game:GetService("Stats")
+local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local releasing
+local signature = "[RBW4 Timings]" -- For easier finding of printed stuff in the dev console
+
+if not getgenv().releasingEnabled then
+    getgenv().releasingEnabled = false -- A constant for enabling Auto-Release
+end
 
 local Timings = {
     ["Standing Shot"] 			 = 0,
@@ -58,31 +64,57 @@ local tab_Main = GUI:Tab{
 
 tab_Main:Toggle{
 	Name = "Releasing Enabled",
-	StartingState = false,
-	Description = "Auto-Release when the ShotMeter attribute has passed the shot timing's threshold",
+	StartingState = getgenv().releasingEnabled,
+	Description = "Auto-Release when the ShotMeter attribute has reached the shot timing's threshold",
 	Callback = function(state)
-	    releasing = state    
+	    getgenv().releasingEnabled = state
     end
 }
 
 tab_Main:Button{
-	Name = "Save timings",
-	Description = "Save input timings as a .txt file which can be found in Synapse's workspace folder",
-	Callback = function() 
-        local currentDate = os.date("%Y.%m.%d")
-        local currentTime = os.date("%H.%M.%S")
-        local fileName = "Timings ("..currentDate.." l "..currentTime..").txt"
-	    writefile(fileName, "")
-	    
-	    for key, value in next, Timings do
-            appendfile(fileName, key.." : "..value.."\n")
-	    end
+	Name = "Save Timings",
+	Description = "Save input timings as a .txt file which can be found in your exploit's workspace folder",
+	Callback = function()
+        if writefile then
+            local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
+            local currentDate = os.date("%Y.%m.%d")
+            local currentTime = os.date("%H.%M.%S")
+
+            local fileName = "RBW4 Timings l "..currentPing.." ping ("..currentDate.." l "..currentTime..").txt"
+            writefile(fileName, "")
+
+            for shotType, timing in next, Timings do
+                appendfile(fileName, shotType.." : "..timing.."\n")
+            end
+
+            GUI:Notification{
+            	Title = "Save Timings",
+            	Text = "File saved successfully.",
+            	Duration = 2
+            }
+        else
+            GUI:Notification{
+            	Title = "Save Timings",
+            	Text = "Exploit doesn't support writefile(), stopping...",
+            	Duration = 2
+            }
+        end
+	end
+}
+
+tab_Main:Button{
+	Name = "Rejoin",
+	Description = nil,
+	Callback = function()
+        LocalPlayer:Kick("\nRejoining, one second...")
+		task.wait()
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
 	end
 }
 
 local tab_Timings = GUI:Tab{
 	Name = "Timings",
-	Icon = "rbxassetid://8569322835"
+	Icon = "rbxassetid://6034996695"
 }
 
 task.defer(function()
@@ -96,24 +128,40 @@ task.defer(function()
     end
 end)
 
+function print(input)
+    getrenv().print(signature, input)
+end
+
+function warn(input)
+    getrenv().warn(signature, input)
+end
+
 local function AutoRelease(shotType)
     if not shotType then
         shotType = LocalPlayer.Character:GetAttribute("ShotType")
-        
+
         if shotType == nil then
-            warn("ShotType is nil")
+            GUI:Notification{
+                Title = "Auto-Release",
+                Text = "ShotType is nil, returning...",
+                Duration = 2
+            }
             return
         end
     end
 
-    if releasing and Timings[shotType] then
+    if releasingEnabled and Timings[shotType] then
         while not LocalPlayer.Character:GetAttribute("ShotMeter") or LocalPlayer.Character:GetAttribute("ShotMeter") <= Timings[shotType] do
             task.wait()
         end
 
         ReplicatedStorage.GameEvents.ClientAction:FireServer("Shoot", false)
     else
-        print("ShotType not found in table")
+        GUI:Notification{
+            Title = "Auto-Release",
+            Text = "ShotType not found in table",
+            Duration = 2
+        }
     end
 end
 
@@ -132,3 +180,5 @@ LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 if LocalPlayer.Character then
     onCharacterAdded()
 end
+
+print("Loaded")
