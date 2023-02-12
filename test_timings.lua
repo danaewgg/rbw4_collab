@@ -110,19 +110,19 @@ tab_Main:Button{
                 
                 GUI:Notification{
                 	Title = "Load Timings",
-                	Text = "Timings loaded successfully.",
+                	Text = "Timings loaded successfully",
                 	Duration = 3
                 }
             else
                 GUI:Notification{
-                	Title = "[ERROR] Load Timings",
-                	Text = "Timings file not found.",
+                	Title = "[ERROR] Load Timings Cancelled",
+                	Text = "Timings file not found",
                 	Duration = 3
                 }
     	    end
         else
         GUI:Notification{
-        	Title = "[ERROR] Load Timings",
+        	Title = "[ERROR] Load Timings Cancelled",
         	Text = "Your exploit does not support isfile() and readfile()",
         	Duration = 3
         }
@@ -153,13 +153,13 @@ tab_Main:Button{
 
             GUI:Notification{
             	Title = "Save Timings",
-            	Text = "File saved successfully.",
+            	Text = "File saved successfully",
             	Duration = 3
             }
         else
             GUI:Notification{
             	Title = "[ERROR] Save Timings Cancelled",
-            	Text = "Exploit doesn't support writefile()",
+            	Text = "Your exploit does not support writefile()",
             	Duration = 3
             }
         end
