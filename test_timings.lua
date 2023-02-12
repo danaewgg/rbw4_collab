@@ -90,6 +90,24 @@ tab_Main:TextBox{
     end
 }
 
+tab_Main:Button{ -- Not working for some reason
+	Name = "Load Timings",
+	Description = nil,
+	Callback = function()
+	    warn(isfile("timingstoload.txt"))
+        local loadedTimings = loadstring(readfile("timingstoload.txt"))()
+        local timings = {}
+        
+        for line in string.gmatch(loadedTimings, "[^\r\n]+") do
+            local shotType, timing = string.match(line, "(%w+)%s*:%s*(%d+)")
+            
+            timings[shotType] = tonumber(timing)
+        end
+        
+        getgenv().Timings = timings
+	end
+}
+
 tab_Main:Button{
 	Name = "Save Timings",
 	Description = "Save input timings as a .txt which can be found in the workspace/RBW4Timings folder",
