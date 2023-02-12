@@ -1,5 +1,5 @@
 local Stats = game:GetService("Stats")
-local NetworkSettings = settings():GetService("NetworkSettings")
+local NetworkSettings = settings():GetService("NetworkSettings") -- I hope all exploits support this..
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualUser = game:GetService("VirtualUser")
@@ -73,7 +73,7 @@ tab_Main:Toggle{
 }
 
 tab_Main:TextBox{
-	Name = "Backtrack",
+	Name = "Backtrack [Max: 0.5]",
     Description = "Stimulates lag, therefore increasing your ping",
 	Callback = function(value)
 	    value = tonumber(value)
@@ -115,8 +115,8 @@ tab_Main:Button{
             }
         else
             GUI:Notification{
-            	Title = "[ERROR] Save Timings",
-            	Text = "Exploit doesn't support writefile(), stopping...",
+            	Title = "[ERROR] Save Timings Cancelled",
+            	Text = "Exploit doesn't support writefile()",
             	Duration = 3
             }
         end
