@@ -90,35 +90,58 @@ tab_Main:TextBox{
     end
 }
 
-tab_Main:Button{ -- Not working for some reason
+tab_Main:Button{
 	Name = "Load Timings",
-	Description = nil,
+	Description = "Allows you to load timings from 'workspace/TimingsToLoad.txt' ",
 	Callback = function()
-	    warn(isfile("timingstoload.txt"))
-        local loadedTimings = loadstring(readfile("timingstoload.txt"))()
-        local timings = {}
-        
-        for line in string.gmatch(loadedTimings, "[^\r\n]+") do
-            local shotType, timing = string.match(line, "(%w+)%s*:%s*(%d+)")
+	    if isfile and readfile then
+    	    if isfile("RBW4 Timings/TimingsToLoad.txt") then
+                local data = {}
+                
+                for index, split in next, readfile("RBW4 Timings/TimingsToLoad.txt"):split("\n") do
+                    split = string.split(split, ":")
             
-            timings[shotType] = tonumber(timing)
-        end
-        
-        getgenv().Timings = timings
-	end
+                    data[trim(split[1])] = tonumber(trim(split[2]))
+                end
+                
+                getgenv().Timings = data
+                
+                GUI:Notification{
+                	Title = "Load Timings",
+                	Text = "Timings loaded successfully.",
+                	Duration = 3
+                }
+            else
+                GUI:Notification{
+                	Title = "[ERROR] Load Timings",
+                	Text = "Timings file not found.",
+                	Duration = 3
+                }
+    	    end
+        else
+        GUI:Notification{
+        	Title = "[ERROR] Load Timings",
+        	Text = "Your exploit does not support isfile() and readfile()",
+        	Duration = 3
+        }
+	    end
+    end
 }
 
 tab_Main:Button{
 	Name = "Save Timings",
-	Description = "Save input timings as a .txt which can be found in the workspace/RBW4Timings folder",
+	Description = "Save input timings to the 'workspace/RBW4 Timings' folder",
 	Callback = function()
         if writefile then
             local folderName = "RBW4 Timings"
+            
             local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
             local currentDate = os.date("%Y.%m.%d")
             local currentTime = os.date("%H.%M.%S")
+            
             local fileName = currentPing.." ping (at "..currentDate.." l "..currentTime.."h).txt"
             local fullPath = folderName.."/"..fileName
+
             makefolder(folderName)
             writefile(fullPath, "")
 
@@ -170,6 +193,10 @@ task.defer(function()
         }
     end
 end)
+
+function trim(string)
+    return string:match("^%s*(.-)%s*$") or ""
+end
 
 function print(input)
     getrenv().print(signature, input)
