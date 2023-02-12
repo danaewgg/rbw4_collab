@@ -4,13 +4,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local signature = "[RBW4 Timings]" -- For easier finding of printed stuff in the dev console
+local signature = "[RBW4 Timings]" -- For easier finding of stuff printed in the dev console
 
 if not getgenv().releasingEnabled then
     getgenv().releasingEnabled = false -- A constant for enabling Auto-Release
 end
 
-local Timings = {
+getgenv().Timings = { -- 35 shots in total
     ["Standing Shot"] 			 = 0,
     ["Off Dribble Shot"] 		 = 0,
     ["Drift Shot"] 				 = 0,
@@ -73,18 +73,20 @@ tab_Main:Toggle{
 
 tab_Main:Button{
 	Name = "Save Timings",
-	Description = "Save input timings as a .txt file which can be found in your exploit's workspace folder",
+	Description = "Save input timings as a .txt which can be found in the workspace/RBW4Timings folder",
 	Callback = function()
         if writefile then
+            local folderName = "RBW4 Timings"
             local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
             local currentDate = os.date("%Y.%m.%d")
             local currentTime = os.date("%H.%M.%S")
-
-            local fileName = "RBW4 Timings l "..currentPing.." ping ("..currentDate.." l "..currentTime..").txt"
-            writefile(fileName, "")
-
+            local fileName = currentPing.." ping (at "..currentDate.." l "..currentTime.."h).txt"
+            local fullPath = folderName.."/"..fileName
+            makefolder(folderName)
+            writefile(fullPath, "")
+            
             for shotType, timing in next, Timings do
-                appendfile(fileName, shotType.." : "..timing.."\n")
+                appendfile(fullPath, shotType.." : "..timing.."\n")
             end
 
             GUI:Notification{
