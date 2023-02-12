@@ -1,9 +1,10 @@
 local Stats = game:GetService("Stats")
+local NetworkSettings = settings():GetService("NetworkSettings")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-
 local signature = "[RBW4 Timings]" -- For easier finding of stuff printed in the dev console
 
 if not getgenv().releasingEnabled then
@@ -71,6 +72,24 @@ tab_Main:Toggle{
     end
 }
 
+tab_Main:TextBox{
+	Name = "Backtrack",
+    Description = "Stimulates lag, therefore increasing your ping",
+	Callback = function(value)
+	    value = tonumber(value)
+
+	    if value <= 0.5 then
+            NetworkSettings.IncomingReplicationLag = value
+        else
+            GUI:Notification{
+                Title = "[ERROR] Backtrack Cancelled",
+                Text = "Value too high, the max is 0.5",
+                Duration = 3
+            }
+        end
+    end
+}
+
 tab_Main:Button{
 	Name = "Save Timings",
 	Description = "Save input timings as a .txt which can be found in the workspace/RBW4Timings folder",
@@ -84,7 +103,7 @@ tab_Main:Button{
             local fullPath = folderName.."/"..fileName
             makefolder(folderName)
             writefile(fullPath, "")
-            
+
             for shotType, timing in next, Timings do
                 appendfile(fullPath, shotType.." : "..timing.."\n")
             end
@@ -92,13 +111,13 @@ tab_Main:Button{
             GUI:Notification{
             	Title = "Save Timings",
             	Text = "File saved successfully.",
-            	Duration = 2
+            	Duration = 3
             }
         else
             GUI:Notification{
-            	Title = "Save Timings",
+            	Title = "[ERROR] Save Timings",
             	Text = "Exploit doesn't support writefile(), stopping...",
-            	Duration = 2
+            	Duration = 3
             }
         end
 	end
@@ -108,9 +127,13 @@ tab_Main:Button{
 	Name = "Rejoin",
 	Description = nil,
 	Callback = function()
-        LocalPlayer:Kick("\nRejoining, one second...")
-		task.wait()
-        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        if #Players:GetPlayers() <= 1 then
+            LocalPlayer:Kick("\nRejoining, one second...")
+            task.wait()
+            TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        else
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+        end
 	end
 }
 
@@ -144,27 +167,34 @@ local function AutoRelease(shotType)
 
         if shotType == nil then
             GUI:Notification{
-                Title = "Auto-Release",
-                Text = "ShotType is nil, returning...",
-                Duration = 2
+                Title = "[ERROR] Auto-Release Cancelled",
+                Text = "ShotType is nil",
+                Duration = 3
             }
             return
         end
     end
 
-    if releasingEnabled and Timings[shotType] then
-        while not LocalPlayer.Character:GetAttribute("ShotMeter") or LocalPlayer.Character:GetAttribute("ShotMeter") <= Timings[shotType] do
-            task.wait()
-        end
+    if releasingEnabled then
+        if Timings[shotType] then
+            while not LocalPlayer.Character:GetAttribute("ShotMeter") or LocalPlayer.Character:GetAttribute("ShotMeter") <= Timings[shotType] do
+                task.wait()
+            end
 
-        ReplicatedStorage.GameEvents.ClientAction:FireServer("Shoot", false)
-    else
-        GUI:Notification{
-            Title = "Auto-Release",
-            Text = "ShotType not found in table",
-            Duration = 2
-        }
+            ReplicatedStorage.GameEvents.ClientAction:FireServer("Shoot", false)
+        else
+            GUI:Notification{
+                Title = "[ERROR] Auto-Release Cancelled",
+                Text = "ShotType not found in table",
+                Duration = 3
+            }
+        end
     end
+end
+
+local function onIdled()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
 end
 
 local function onCharacterAdded()
@@ -177,6 +207,7 @@ local function onCharacterAdded()
     end)
 end
 
+LocalPlayer.Idled:Connect(onIdled)
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 
 if LocalPlayer.Character then
