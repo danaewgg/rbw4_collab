@@ -100,8 +100,10 @@ tab_Main:Button{
                 
                 for index, split in next, readfile("RBW4 Timings/TimingsToLoad.txt"):split("\n") do
                     split = string.split(split, ":")
-            
-                    data[trim(split[1])] = tonumber(trim(split[2]))
+                    
+                    if split[1] and split[2] then
+                        data[trim(split[1])] = tonumber(trim(split[2]))
+                    end
                 end
                 
                 getgenv().Timings = data
