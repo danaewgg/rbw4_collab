@@ -74,9 +74,18 @@ tab_Main:Toggle{
     end
 }
 
+tab_Main:Toggle{
+	Name = "AI",
+	StartingState = getgenv().releasingEnabled,
+	Description = "[Work in progress] Get a bot to do the testing for you",
+	Callback = function(state)
+	    getgenv().releasingEnabled = state
+    end
+}
+
 tab_Main:TextBox{
-	Name = "Backtrack [Max: 0.5]",
-    Description = "Stimulates lag, therefore increasing your ping",
+	Name = "Backtrack",
+    Description = " [Max: 0.5] Stimulates lag, therefore increasing your ping",
 	Callback = function(value)
 	    value = tonumber(value)
 
@@ -100,7 +109,7 @@ tab_Main:Button{
     	    if isfile("RBW4 Timings/TimingsToLoad.txt") then
                 local data = {}
 
-                for index, split in next, readfile("RBW4 Timings/TimingsToLoad.txt"):split("\n") do
+                for _, split in next, readfile("RBW4 Timings/TimingsToLoad.txt"):split("\n") do
                     split = string.split(split, ":")
 
                     if split[1] and split[2] then
@@ -141,11 +150,12 @@ tab_Main:Button{
 
             local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
             local currentDate = os.date("%d.%m.%Y")
-            local currentTime = os.date("%H;%M;%S")
+            local currentTime = os.date("%H.%M.%Sh")
 
             local fileName = currentPing.." ping ("..currentDate.." at "..currentTime..").txt"
-            local fullPath = folderName.."/"..fileName
-
+            local fileExtension = ".txt" -- Maybe customizable down the line
+            local fullPath = folderName.."/"..fileName..fileExtension
+            
             makefolder(folderName)
             writefile(fullPath, "")
 
