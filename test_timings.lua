@@ -11,7 +11,7 @@ if not getgenv().releasingEnabled then
     getgenv().releasingEnabled = false -- A constant for enabling Auto-Release
 end
 
-getgenv().Timings = { -- 35 shots in total
+getgenv().Timings = { -- 35 shot types in total
     ["Standing Shot"] 			 = 0,
     ["Off Dribble Shot"] 		 = 0,
     ["Drift Shot"] 				 = 0,
@@ -92,7 +92,7 @@ tab_Main:TextBox{
 
 tab_Main:Button{
 	Name = "Load Timings",
-	Description = "Allows you to load timings from 'workspace/TimingsToLoad.txt' ",
+	Description = "Allows you to load timings from 'workspace/RBW4 Timings/TimingsToLoad.txt' ",
 	Callback = function()
 	    if isfile and readfile then
     	    if isfile("RBW4 Timings/TimingsToLoad.txt") then
