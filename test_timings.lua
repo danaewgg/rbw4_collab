@@ -91,25 +91,25 @@ tab_Main:TextBox{
 }
 
 tab_Main:Button{
-	Name = "Load Timings",
+	Name = "Import Timings",
 	Description = "Allows you to load timings from 'workspace/RBW4 Timings/TimingsToLoad.txt' ",
 	Callback = function()
 	    if isfile and readfile then
     	    if isfile("RBW4 Timings/TimingsToLoad.txt") then
                 local data = {}
-                
+
                 for index, split in next, readfile("RBW4 Timings/TimingsToLoad.txt"):split("\n") do
                     split = string.split(split, ":")
-                    
+
                     if split[1] and split[2] then
                         data[trim(split[1])] = tonumber(trim(split[2]))
                     end
                 end
-                
+
                 getgenv().Timings = data
-                
+
                 GUI:Notification{
-                	Title = "Load Timings",
+                	Title = "Imported Timings",
                 	Text = "Timings loaded successfully",
                 	Duration = 3
                 }
@@ -121,26 +121,26 @@ tab_Main:Button{
                 }
     	    end
         else
-        GUI:Notification{
-        	Title = "[ERROR] Load Timings Cancelled",
-        	Text = "Your exploit does not support isfile() and readfile()",
-        	Duration = 3
-        }
+            GUI:Notification{
+                Title = "[ERROR] Load Timings Cancelled",
+                Text = "Your exploit does not support isfile() and/or readfile()",
+                Duration = 3
+            }
 	    end
     end
 }
 
 tab_Main:Button{
-	Name = "Save Timings",
+	Name = "Export Timings",
 	Description = "Save input timings to the 'workspace/RBW4 Timings' folder",
 	Callback = function()
         if writefile then
             local folderName = "RBW4 Timings"
-            
+
             local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
             local currentDate = os.date("%Y.%m.%d")
             local currentTime = os.date("%H.%M.%S")
-            
+
             local fileName = currentPing.." ping (at "..currentDate.." l "..currentTime.."h).txt"
             local fullPath = folderName.."/"..fileName
 
@@ -152,13 +152,13 @@ tab_Main:Button{
             end
 
             GUI:Notification{
-            	Title = "Save Timings",
+            	Title = "Exported Timings",
             	Text = "File saved successfully",
             	Duration = 3
             }
         else
             GUI:Notification{
-            	Title = "[ERROR] Save Timings Cancelled",
+            	Title = "[ERROR] Export Timings Cancelled",
             	Text = "Your exploit does not support writefile()",
             	Duration = 3
             }
@@ -172,7 +172,6 @@ tab_Main:Button{
 	Callback = function()
         if #Players:GetPlayers() <= 1 then
             LocalPlayer:Kick("\nRejoining, one second...")
-            task.wait()
             TeleportService:Teleport(game.PlaceId, LocalPlayer)
         else
             TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
@@ -225,7 +224,7 @@ local function AutoRelease(shotType)
     if releasingEnabled then
         if Timings[shotType] then
             while not LocalPlayer.Character:GetAttribute("ShotMeter") or LocalPlayer.Character:GetAttribute("ShotMeter") <= Timings[shotType] do
-                task.wait()
+                LocalPlayer.Character:GetAttributeChangedSignal("ShotMeter"):Wait()
             end
 
             ReplicatedStorage.GameEvents.ClientAction:FireServer("Shoot", false)
