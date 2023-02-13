@@ -1,6 +1,8 @@
 local Stats = game:GetService("Stats")
 local NetworkSettings = settings():GetService("NetworkSettings") -- I hope all exploits support this..
 local TeleportService = game:GetService("TeleportService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualUser = game:GetService("VirtualUser")
 local Players = game:GetService("Players")
@@ -60,13 +62,13 @@ local GUI = Mercury:Create{
 
 local tab_Main = GUI:Tab{
 	Name = "Main",
-	Icon = "rbxassetid://8569322835"
+	Icon = "rbxassetid://6034996695"
 }
 
 tab_Main:Toggle{
 	Name = "Releasing Enabled",
 	StartingState = getgenv().releasingEnabled,
-	Description = "Auto-Release when the ShotMeter attribute has reached the shot timing's threshold",
+	Description = "Automatically stop shooting when the shot timing's threshold has been reached",
 	Callback = function(state)
 	    getgenv().releasingEnabled = state
     end
@@ -115,14 +117,14 @@ tab_Main:Button{
                 }
             else
                 GUI:Notification{
-                	Title = "[ERROR] Load Timings Cancelled",
+                	Title = "[ERROR] Import Timings Cancelled",
                 	Text = "Timings file not found",
                 	Duration = 3
                 }
     	    end
         else
             GUI:Notification{
-                Title = "[ERROR] Load Timings Cancelled",
+                Title = "[ERROR] Import Timings Cancelled",
                 Text = "Your exploit does not support isfile() and/or readfile()",
                 Duration = 3
             }
@@ -138,10 +140,10 @@ tab_Main:Button{
             local folderName = "RBW4 Timings"
 
             local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
-            local currentDate = os.date("%Y.%m.%d")
-            local currentTime = os.date("%H.%M.%S")
+            local currentDate = os.date("%d.%m.%Y")
+            local currentTime = os.date("%H;%M;%S")
 
-            local fileName = currentPing.." ping (at "..currentDate.." l "..currentTime.."h).txt"
+            local fileName = currentPing.." ping ("..currentDate.." at "..currentTime..").txt"
             local fullPath = folderName.."/"..fileName
 
             makefolder(folderName)
@@ -208,37 +210,48 @@ function warn(input)
 end
 
 local function AutoRelease(shotType)
-    if not shotType then
-        shotType = LocalPlayer.Character:GetAttribute("ShotType")
+	if not shotType then
+		shotType = LocalPlayer.Character:GetAttribute("ShotType")
 
-        if shotType == nil then
-            GUI:Notification{
-                Title = "[ERROR] Auto-Release Cancelled",
-                Text = "ShotType is nil",
-                Duration = 3
-            }
-            return
-        end
-    end
+		if shotType == nil then
+			GUI:Notification{
+				Title = "[ERROR] Auto-Release Cancelled",
+				Text = "ShotType is nil",
+				Duration = 3
+			}
+			return
+		end
+	end
 
-    if releasingEnabled then
-        if Timings[shotType] then
-            while not LocalPlayer.Character:GetAttribute("ShotMeter") or LocalPlayer.Character:GetAttribute("ShotMeter") <= Timings[shotType] do
-                LocalPlayer.Character:GetAttributeChangedSignal("ShotMeter"):Wait()
-            end
-
-            ReplicatedStorage.GameEvents.ClientAction:FireServer("Shoot", false)
-        else
-            GUI:Notification{
-                Title = "[ERROR] Auto-Release Cancelled",
-                Text = "ShotType not found in table",
-                Duration = 3
-            }
-        end
-    end
+	if releasingEnabled then
+		if Timings[shotType] then -- Hopefully I do a standing shot and streak/quick shot check soon
+			local startTime = tick()
+			local releaseTime = Timings[shotType]
+			
+			local function Shoot()
+			    if (tick() - startTime) >= releaseTime then
+					ReplicatedStorage.GameEvents.ClientAction:FireServer("Shoot", false)
+					-- warn(string.format("Time taken: %s", tostring(tick() - startTime)))
+					RunService:UnbindFromRenderStep("Auto-Release")
+				end
+			end
+			
+			RunService:BindToRenderStep("Auto-Release", 1, Shoot)
+		else
+			GUI:Notification{
+				Title = "[ERROR] Auto-Release Cancelled",
+				Text = "ShotType not found in table",
+				Duration = 3
+			}
+		end
+	end
 end
 
-local function onIdled()
+local function onOverrideMouseIconBehavior()
+    UserInputService.OverrideMouseIconBehavior = 1 -- ForceShow
+end
+
+local function onIdled() -- Anti-Idle
     VirtualUser:CaptureController()
     VirtualUser:ClickButton2(Vector2.new())
 end
@@ -253,6 +266,7 @@ local function onCharacterAdded()
     end)
 end
 
+UserInputService:GetPropertyChangedSignal("OverrideMouseIconBehavior"):Connect(onOverrideMouseIconBehavior)
 LocalPlayer.Idled:Connect(onIdled)
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 
