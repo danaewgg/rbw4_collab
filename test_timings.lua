@@ -110,7 +110,7 @@ tab_Main:TextBox{
 tab_Main:Toggle{
 	Name = "FPS Boost",
 	StartingState = getgenv().boostFPS,
-	Description = "Increase performance by hiding unnecessary parts",
+	Description = "Increase performance by hiding unnecessary",
 	Callback = function(state)
 	    if state ~= false then
 	        getgenv().boostFPS = state
@@ -132,7 +132,7 @@ tab_Main:Toggle{
                 end
             end
             
-            for _, child in next, workspace.Gym.Building:GetChildren() do
+            for _, child in next, workspace.Gym.Building:GetChildren() do -- Prone to error if the place isn't the gym
                 if not child.Name:find("Light") then
                     getgenv().parts[child] = child.Parent
                     child.Parent = nil
@@ -247,11 +247,19 @@ function trim(string)
 end
 
 function print(input)
-    getrenv().print(signature, input)
+    if typeof(input) ~= "table" then
+        return getrenv().print(signature, input)
+    else 
+        return getrenv().print(signature, unpack(input))
+    end
 end
 
 function warn(input)
-    getrenv().warn(signature, input)
+    if typeof(input) ~= "table" then
+        return getrenv().warn(signature, input)
+    else 
+        return getrenv().warn(signature, unpack(input))
+    end
 end
 
 function Notify(heading, description, duration)
@@ -260,6 +268,13 @@ function Notify(heading, description, duration)
     	Text = description or "",
     	Duration = duration or 3
     }
+end
+
+local function DisplayShotResults()
+    local landedShotMeter = LocalPlayer.Character:GetAttribute("LandedShotMeter")
+    local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
+    
+    Notify("Shot Results", string.format("LandedShotMeter: %.2f \nPing: %s", landedShotMeter, currentPing))
 end
 
 local function AutoRelease(shotType)
@@ -302,6 +317,16 @@ local function onIdled() -- Anti-Idle
 end
 
 local function onCharacterAdded()
+    LocalPlayer.Character:GetAttributeChangedSignal("ShootInput"):Connect(function()
+        local shootInput = LocalPlayer.Character:GetAttribute("ShootInput")
+        local shooting = LocalPlayer.Character:GetAttribute("Shooting")
+
+        if not shootInput and shooting ~= false then
+            LocalPlayer.Character:GetAttributeChangedSignal("LandedShotMeter"):Wait()
+            DisplayShotResults()
+        end
+    end)
+    
     LocalPlayer.Character:GetAttributeChangedSignal("ShotType"):Connect(function()
         local shotType = LocalPlayer.Character:GetAttribute("ShotType")
 
