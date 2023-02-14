@@ -4,6 +4,7 @@ local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
 local VirtualUser = game:GetService("VirtualUser")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -11,6 +12,15 @@ local signature = "[RBW4 Timings]" -- For easier finding of stuff printed in the
 
 if not getgenv().releasingEnabled then
     getgenv().releasingEnabled = false -- A constant for enabling Auto-Release
+end
+
+if not getgenv().botEnabled then
+    getgenv().botEnabled = false -- A constant for enabling the AI
+end
+
+if not (getgenv().boostFPS or getgenv().parts) then
+    getgenv().boostFPS = false -- A constant for enabling the FPS boost toggle
+    getgenv().parts = {}
 end
 
 getgenv().Timings = { -- 35 shot types in total
@@ -76,10 +86,10 @@ tab_Main:Toggle{
 
 tab_Main:Toggle{
 	Name = "AI",
-	StartingState = getgenv().releasingEnabled,
+	StartingState = getgenv().botEnabled,
 	Description = "[Work in progress] Get a bot to do the testing for you",
 	Callback = function(state)
-	    getgenv().releasingEnabled = state
+	    getgenv().botEnabled = state
     end
 }
 
@@ -92,12 +102,55 @@ tab_Main:TextBox{
 	    if value <= 0.5 then
             NetworkSettings.IncomingReplicationLag = value
         else
-            GUI:Notification{
-                Title = "[ERROR] Backtrack Cancelled",
-                Text = "Value too high, the max is 0.5",
-                Duration = 3
-            }
+            Notify("[ERROR] Backtrack Cancelled", "Value too high, the max is 0.5")
         end
+    end
+}
+
+tab_Main:Toggle{
+	Name = "FPS Boost",
+	StartingState = getgenv().boostFPS,
+	Description = "Increase performance by hiding unnecessary parts",
+	Callback = function(state)
+	    if state ~= false then
+	        getgenv().boostFPS = state
+	        
+            for _, child in next, workspace:GetChildren() do
+                if child.Name:find("Ball Racks") then
+                    getgenv().parts[child] = child.Parent
+                    child.Parent = nil
+                end
+                
+                if child.Name:find("_Hoop") then
+                    for _, descendant in next, child:GetDescendants() do
+			            -- I'll change this later, I know it's bad lol
+                        if descendant.Name:find("TimerDisplay") or descendant.Name:find("Slide") or descendant.Name:find("Timer Displays") or descendant.Name:find("Timer Displays") or descendant.Name:find("Net") or descendant.Name:find("Pole") then
+                            getgenv().parts[descendant] = descendant.Parent
+                            descendant.Parent = nil
+                        end
+                    end
+                end
+            end
+            
+            for _, child in next, workspace.Gym.Building:GetChildren() do
+                if not child.Name:find("Light") then
+                    getgenv().parts[child] = child.Parent
+                    child.Parent = nil
+                end
+            end
+            
+            for _, child in next, Lighting:GetChildren() do
+                getgenv().parts[child] = child.Parent
+                child.Parent = nil
+            end
+	    else
+	        getgenv().boostFPS = state
+	        
+	        for part, parent in next, getgenv().parts do
+	            part.Parent = parent
+	            getgenv().parts[part] = nil
+	        end
+	    end
     end
 }
 
@@ -119,24 +172,14 @@ tab_Main:Button{
 
                 getgenv().Timings = data
 
-                GUI:Notification{
-                	Title = "Imported Timings",
-                	Text = "Timings loaded successfully",
-                	Duration = 3
-                }
+                Notify("Imported Timings", "Timings loaded successfully")
             else
-                GUI:Notification{
-                	Title = "[ERROR] Import Timings Cancelled",
-                	Text = "Timings file not found",
-                	Duration = 3
-                }
+                Notify("[ERROR] Import Timings Cancelled", "Timings file not found")
     	    end
-        else
-            GUI:Notification{
-                Title = "[ERROR] Import Timings Cancelled",
-                Text = "Your exploit does not support isfile() and/or readfile()",
-                Duration = 3
-            }
+        elseif not isfile then
+            Notify("[ERROR] Import Timings Cancelled", "Your exploit does not support isfile()")
+        elseif not readfile then
+            Notify("[ERROR] Import Timings Cancelled", "Your exploit does not support readfile()")
 	    end
     end
 }
@@ -162,18 +205,10 @@ tab_Main:Button{
             for shotType, timing in next, Timings do
                 appendfile(fullPath, shotType.." : "..timing.."\n")
             end
-
-            GUI:Notification{
-            	Title = "Exported Timings",
-            	Text = "File saved successfully",
-            	Duration = 3
-            }
+            
+            Notify("Exported Timings", "File saved successfully")
         else
-            GUI:Notification{
-            	Title = "[ERROR] Export Timings Cancelled",
-            	Text = "Your exploit does not support writefile()",
-            	Duration = 3
-            }
+            Notify("[ERROR] Export Timings Cancelled", "Your exploit does not support writefile()")
         end
 	end
 }
@@ -219,16 +254,20 @@ function warn(input)
     getrenv().warn(signature, input)
 end
 
+function Notify(heading, description, duration)
+    GUI:Notification{
+    	Title = heading or "",
+    	Text = description or "",
+    	Duration = duration or 3
+    }
+end
+
 local function AutoRelease(shotType)
 	if not shotType then
 		shotType = LocalPlayer.Character:GetAttribute("ShotType")
 
 		if shotType == nil then
-			GUI:Notification{
-				Title = "[ERROR] Auto-Release Cancelled",
-				Text = "ShotType is nil",
-				Duration = 3
-			}
+		    Notify("[ERROR] Auto-Release Cancelled", "ShotType is nil")
 			return
 		end
 	end
@@ -248,11 +287,7 @@ local function AutoRelease(shotType)
 			
 			RunService:BindToRenderStep("Auto-Release", 1, Shoot)
 		else
-			GUI:Notification{
-				Title = "[ERROR] Auto-Release Cancelled",
-				Text = "ShotType not found in table",
-				Duration = 3
-			}
+		    Notify("[ERROR] Auto-Release Cancelled", "ShotType not found in table")
 		end
 	end
 end
