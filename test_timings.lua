@@ -193,7 +193,7 @@ tab_Main:Button{
 
             local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
             local currentDate = os.date("%d.%m.%Y")
-            local currentTime = os.date("%H.%M.%Sh")
+            local currentTime = os.date("%H.%Mh")
 
             local fileName = currentPing.." ping ("..currentDate.." at "..currentTime..").txt"
             local fileExtension = ".txt" -- Maybe customizable down the line
@@ -271,10 +271,11 @@ function Notify(heading, description, duration)
 end
 
 local function DisplayShotResults()
+    local shotType = LocalPlayer.Character:GetAttribute("ShotType")
     local landedShotMeter = LocalPlayer.Character:GetAttribute("LandedShotMeter")
     local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
     
-    Notify("Shot Results", string.format("LandedShotMeter: %.2f \nPing: %s", landedShotMeter, currentPing))
+    Notify("Shot Results", string.format("ShotType: %s \nLandedShotMeter: %.2f \nPing: %s", shotType, landedShotMeter, currentPing))
 end
 
 local function AutoRelease(shotType)
