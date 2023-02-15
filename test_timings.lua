@@ -5,23 +5,37 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
+local Terrain = game:GetService("Terrain")
 local VirtualUser = game:GetService("VirtualUser")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local signature = "[RBW4 Timings]" -- For easier finding of stuff printed in the dev console
 
+if not getgenv().backtrackValue then
+    getgenv().backtrackValue = 0
+end
+
 if not getgenv().releasingEnabled then
-    getgenv().releasingEnabled = false -- A constant for enabling Auto-Release
+    getgenv().releasingEnabled = false
 end
 
 if not getgenv().botEnabled then
-    getgenv().botEnabled = false -- A constant for enabling the AI
+    getgenv().botEnabled = false
 end
 
 if not (getgenv().boostFPS or getgenv().parts) then
-    getgenv().boostFPS = false -- A constant for enabling the FPS boost toggle
+    getgenv().boostFPS = false
     getgenv().parts = {}
 end
+
+local qsTiers = {
+    [1] = 0.3, -- Bronze
+    [2] = 0.6, -- Silver 
+    [3] = 0.7, -- Gold
+    [4] = 0.9, -- Diamond
+}
+
+local TextBoxes = {} -- For referencing timings later on (:Set)
 
 getgenv().Timings = { -- 35 shot types in total
     ["Standing Shot"] 			 = 0,
@@ -95,11 +109,11 @@ tab_Main:Toggle{
 
 tab_Main:TextBox{
 	Name = "Backtrack",
+	Placeholder = getgenv().backtrackValue,
     Description = " [Max: 0.5] Stimulates lag, therefore increasing your ping",
 	Callback = function(value)
-	    value = tonumber(value)
-
-	    if value <= 0.5 then
+	    if tonumber(value) <= 0.5 then
+	        getgenv().backtrackValue = value
             NetworkSettings.IncomingReplicationLag = value
         else
             Notify("[ERROR] Backtrack Cancelled", "Value too high, the max is 0.5")
@@ -110,21 +124,21 @@ tab_Main:TextBox{
 tab_Main:Toggle{
 	Name = "FPS Boost",
 	StartingState = getgenv().boostFPS,
-	Description = "Increase performance by hiding unnecessary",
+	Description = "Increase performance by hiding unnecessary parts",
 	Callback = function(state)
 	    if state ~= false then
 	        getgenv().boostFPS = state
 	        
+	        -- I'll change this later, I know it's bad lol
             for _, child in next, workspace:GetChildren() do
-                if child.Name:find("Ball Racks") then
+                if child.Name:find("Ball Racks") or child.Name:find("NameUIFolder") or child.Name:find("SpawnLocation") then
                     getgenv().parts[child] = child.Parent
                     child.Parent = nil
                 end
                 
                 if child.Name:find("_Hoop") then
                     for _, descendant in next, child:GetDescendants() do
-			            -- I'll change this later, I know it's bad lol
-                        if descendant.Name:find("TimerDisplay") or descendant.Name:find("Slide") or descendant.Name:find("Timer Displays") or descendant.Name:find("Timer Displays") or descendant.Name:find("Net") or descendant.Name:find("Pole") then
+                        if descendant.Name:find("TimerDisplay") or descendant.Name:find("Slide") or descendant.Name:find("Timer Displays") or descendant.Name:find("Timer Displays") or descendant.Name:find("Net") or descendant.Name:find("Pole") or descendant.Name:find("Box") then
                             getgenv().parts[descendant] = descendant.Parent
                             descendant.Parent = nil
                         end
@@ -139,9 +153,35 @@ tab_Main:Toggle{
                 end
             end
             
+            for _, child in next, workspace.Gym:GetChildren() do -- Prone to error if the place isn't the gym
+                if not child.Name:find("Building") then
+                    getgenv().parts[child] = child.Parent
+                    child.Parent = nil
+                end
+            end
+            
             for _, child in next, Lighting:GetChildren() do
                 getgenv().parts[child] = child.Parent
                 child.Parent = nil
+            end
+            
+            for _, child in next, workspace.Court:GetChildren() do
+                if child.Name:find("Baseline") then
+                    getgenv().parts[child] = child.Parent
+                    child.Parent = nil
+                end
+            end
+            
+            for _, child in next, Terrain:GetChildren() do
+                getgenv().parts[child] = child.Parent
+                child.Parent = nil
+            end
+            
+            for _, child in next, ReplicatedStorage:GetChildren() do
+                if child.Name:find("DisplayCharacter") or child.Name:find("Cinematic") then
+                    getgenv().parts[child] = child.Parent
+                    child.Parent = nil
+                end
             end
 	    else
 	        getgenv().boostFPS = state
@@ -167,9 +207,10 @@ tab_Main:Button{
 
                     if split[1] and split[2] then
                         data[trim(split[1])] = tonumber(trim(split[2]))
+                        TextBoxes[trim(split[1])]:Set(trim(split[2])) -- Set the timing textbox to the loaded value
                     end
                 end
-
+                
                 getgenv().Timings = data
 
                 Notify("Imported Timings", "Timings loaded successfully")
@@ -189,6 +230,7 @@ tab_Main:Button{
 	Description = "Save input timings to the 'workspace/RBW4 Timings' folder",
 	Callback = function()
         if writefile then
+            -- Maybe customizable down the line
             local folderName = "RBW4 Timings"
 
             local currentPing = math.round(Stats.PerformanceStats.Ping:GetValue())
@@ -196,7 +238,7 @@ tab_Main:Button{
             local currentTime = os.date("%H.%Mh")
 
             local fileName = currentPing.." ping ("..currentDate.." at "..currentTime..").txt"
-            local fileExtension = ".txt" -- Maybe customizable down the line
+            local fileExtension = ".txt"
             local fullPath = folderName.."/"..fileName..fileExtension
             
             makefolder(folderName)
@@ -233,8 +275,9 @@ local tab_Timings = GUI:Tab{
 
 task.defer(function()
     for key, value in next, Timings do
-        tab_Timings:Textbox{
+        TextBoxes[key] = tab_Timings:Textbox{
             Name = key,
+            Placeholder = Timings[key],
             Callback = function(value)
                 Timings[key] = tonumber(value)
             end
@@ -289,7 +332,7 @@ local function AutoRelease(shotType)
 	end
 
 	if releasingEnabled then
-		if Timings[shotType] then -- Hopefully I do a standing shot and streak/quick shot check soon
+		if Timings[shotType] then
 			local startTime = tick()
 			local releaseTime = Timings[shotType]
 			
@@ -301,6 +344,21 @@ local function AutoRelease(shotType)
 				end
 			end
 			
+			if LocalPlayer.Character:GetAttribute("Streak") then
+			    if shotType == "Standing Shot" or shotType == "Off Dribble Shot" or shotType == "Hopstep Off Dribble Shot" then
+			        if LocalPlayer.Character:GetAttribute("StreakMeter") > 0 and LocalPlayer.Character:GetAttribute("StreakType") == "Spot-Up Shooter" then
+			            releaseTime = releaseTime - 0.04
+			        elseif LocalPlayer.Character:GetAttribute("StreakMeter") < 0 then
+			            releaseTime = releaseTime + 0.04
+			        end
+			    end
+			end
+			
+			if LocalPlayer.PlayerGui.GameUI.Main.Boosts:FindFirstChild("Quick Shot"):GetAttribute("Active") then
+			    local qsTier = LocalPlayer.Character.Boosts["Quick Shot"].Value
+			    releaseTime = releaseTime - qsTiers[qsTier]
+		    end
+ 			
 			RunService:BindToRenderStep("Auto-Release", 1, Shoot)
 		else
 		    Notify("[ERROR] Auto-Release Cancelled", "ShotType not found in table")
@@ -318,14 +376,8 @@ local function onIdled() -- Anti-Idle
 end
 
 local function onCharacterAdded()
-    LocalPlayer.Character:GetAttributeChangedSignal("ShootInput"):Connect(function()
-        local shootInput = LocalPlayer.Character:GetAttribute("ShootInput")
-        local shooting = LocalPlayer.Character:GetAttribute("Shooting")
-
-        if not shootInput and shooting ~= false then
-            LocalPlayer.Character:GetAttributeChangedSignal("LandedShotMeter"):Wait()
-            DisplayShotResults()
-        end
+    LocalPlayer.Character:GetAttributeChangedSignal("LandedShotMeter"):Connect(function()
+        DisplayShotResults()
     end)
     
     LocalPlayer.Character:GetAttributeChangedSignal("ShotType"):Connect(function()
