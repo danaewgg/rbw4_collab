@@ -282,27 +282,19 @@ task.defer(function()
                 Timings[key] = tonumber(value)
             end
         }
-    end
+    end 
 end)
 
 function trim(string)
     return string:match("^%s*(.-)%s*$") or ""
 end
 
-function print(input)
-    if typeof(input) ~= "table" then
-        return getrenv().print(signature, input)
-    else 
-        return getrenv().print(signature, unpack(input))
-    end
+function print(...)
+    return getgenv().print(signature, ...)
 end
 
-function warn(input)
-    if typeof(input) ~= "table" then
-        return getrenv().warn(signature, input)
-    else 
-        return getrenv().warn(signature, unpack(input))
-    end
+function warn(...)
+    return getgenv().warn(signature, ...)
 end
 
 function Notify(heading, description, duration)
@@ -354,9 +346,11 @@ local function AutoRelease(shotType)
 			    end
 			end
 			
-			if LocalPlayer.PlayerGui.GameUI.Main.Boosts:FindFirstChild("Quick Shot"):GetAttribute("Active") then
-			    local qsTier = LocalPlayer.Character.Boosts["Quick Shot"].Value
-			    releaseTime = releaseTime - qsTiers[qsTier]
+			if LocalPlayer.PlayerGui.GameUI.Main.Boosts:FindFirstChild("Quick Shot") then
+			    if LocalPlayer.PlayerGui.GameUI.Main.Boosts["Quick Shot"]:GetAttribute("Active") then
+			        local qsTier = LocalPlayer.Character.Boosts["Quick Shot"].Value
+			        releaseTime = releaseTime - qsTiers[qsTier]
+			    end
 		    end
  			
 			RunService:BindToRenderStep("Auto-Release", 1, Shoot)
