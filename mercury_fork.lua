@@ -1,11 +1,13 @@
 --[[
-	  /------------   [ mercury ui library ]   -------------\
-	  |													                            |
+    /------------   [ mercury ui library ]   -------------\
+    |						          |
     |               by Deity & Abstract                   |
     |               last modified 03/21/2023              |
     |                                                     |
     \-----------------------------------------------------/
+
 30.12.2023 - trying this out on emulator, might continue updating this old fork
+26.01.2024 - I'll switch this out entirely or add mobile support later cause I think this lib cannot be dragged on actual mobile devices.
 
 Danaew's fork, changes include:
 - OnBindChanged parameter for the Keybinds
@@ -19,6 +21,10 @@ Danaew's fork, changes include:
 - All around improvements (used task library and typeof where possible)
 - Color pickers now have a :Set method
 - Sliders have a new parameter called 'Step' (what value its increment/decrement is)
+
+(new) To-do:
+- Work around tooltips and add a OnClick event which could change the tooltip text temporarily (ex: Copy -> Copied...)
+- Finish fixing up the themes section (it needs to adjust based on the library size too)
 
 I guess I can also update the documentation sometime soon.
 ]]
