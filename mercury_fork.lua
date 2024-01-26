@@ -23,7 +23,7 @@ Danaew's fork, changes include:
 - Sliders have a new parameter called 'Step' (what value its increment/decrement is)
 
 (new) To-do:
-- Work around tooltips and add a OnClick event which could change the tooltip text temporarily (ex: Copy -> Copied...)
+- Work around tooltips and add an OnClick event which could change the tooltip text temporarily (ex: Copy -> Copied...)
 - Finish fixing up the themes section (it needs to adjust based on the library size too)
 
 I guess I can also update the documentation sometime soon.
