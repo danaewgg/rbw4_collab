@@ -6,8 +6,8 @@
     |                                                     |
     \-----------------------------------------------------/
 
-30.12.2023 - trying this out on emulator, might continue updating this old fork
-26.01.2024 - I'll switch this out entirely or add mobile support later cause I think this lib cannot be dragged on actual mobile devices
+30.12.2023 - Trying this out on emulator, might continue updating this old fork.
+26.01.2024 - I'll switch this out entirely or add mobile support later cause I think this lib cannot be dragged on actual mobile devices.
 
 Danaew's fork, changes include:
 - OnBindChanged parameter for the Keybinds
