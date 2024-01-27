@@ -297,11 +297,6 @@ function Library:object(class, properties)
 
 		local hovered = false
 
-		print("moments before disaster?")
-		methods.InputBegan:connect(function()
-			print("ugh")
-		end)
-
 		methods.MouseEnter:connect(function()
 			hovered = true
 			task.wait(0.2)
