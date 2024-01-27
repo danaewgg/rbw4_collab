@@ -29,6 +29,8 @@ Danaew's fork, changes include:
 I guess I can also update the documentation sometime soon.
 ]]
 
+print("test 1")
+
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
