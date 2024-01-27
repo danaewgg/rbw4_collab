@@ -29,7 +29,7 @@ Danaew's fork, changes include:
 I guess I can also update the documentation sometime soon.
 ]]
 
-print("test 4")
+print("test 5, what the hell, update plz")
 
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
