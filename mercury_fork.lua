@@ -297,6 +297,7 @@ function Library:object(class, properties)
 
 		local hovered = false
 
+		print("moments before disaster?")
 		methods.InputBegan:connect(function(input)
 			if input.UserInputType == Enum.UserInputType.Keyboard then
 				print("A key is being pushed down! Key:", input.KeyCode)
