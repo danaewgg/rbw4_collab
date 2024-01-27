@@ -310,7 +310,7 @@ function Library:object(class, properties)
 			elseif input.UserInputType == Enum.UserInputType.Gamepad1 then
 				print("A button is being pressed on a gamepad! Button:", input.KeyCode)
 			end
-		)
+		end)
 
 		methods.MouseEnter:connect(function()
 			hovered = true
