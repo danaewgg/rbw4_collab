@@ -29,7 +29,7 @@ Danaew's fork, changes include:
 I guess I can also update the documentation sometime soon.
 ]]
 
-print("test 2")
+print("test 3")
 
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -303,11 +303,12 @@ function Library:object(class, properties)
 		methods.InputBegan:connect(function(input)
 			if hovered then
 				local oldText = tooltipContainer.Text
-				tooltipContainer.Text += "ied"
+				tooltipContainer.Text = "Copied..."
 				task.wait(0.5)
 				tooltipContainer.Text = oldText
 			end
 		end)
+		
 		methods.MouseEnter:connect(function()
 			hovered = true
 			task.wait(0.2)
